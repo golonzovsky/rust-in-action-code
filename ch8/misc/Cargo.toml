@@ -1,0 +1,25 @@
+[package]
+name = "misc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[[bin]]
+path = "./src/io-error.rs"
+name = "io-error"
+
+
+[[bin]]
+path = "./src/multierror.rs"
+name = "multierror"
+[[bin]]
+path = "./src/multierror_fix.rs"
+name = "multierror_fix"
+[[bin]]
+path = "./src/multierror_fix2.rs"
+name = "multierror_fix2"
+
+[[bin]]
+path = "./src/traiterror.rs"
+name = "traiterror"
