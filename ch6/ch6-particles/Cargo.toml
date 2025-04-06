@@ -1,10 +1,9 @@
 [package]
 name = "ch6-particles"
 version = "0.1.0"
-authors = ["TS McNamara <author@rustinaction.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-piston_window = "0.117"      # <1>
-piston2d-graphics = "0.39"   # <2>
-rand = "0.8"                 # <3>
+piston_window = "0.132"      
+piston2d-graphics = "0.45"   
+rand = "0.9"                 

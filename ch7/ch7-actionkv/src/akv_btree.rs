@@ -11,16 +11,6 @@ use libactionkv::ActionKV;
 const ROOT_KEY: &[u8] = b"+root";
 const NODE_KEY: &[u8] = b"+node";
 
-#[cfg(target_os = "windows")]
-const USAGE: &'static str = "
-Usage:
-    akv_mem.exe FILE get KEY
-    akv_mem.exe FILE delete KEY
-    akv_mem.exe FILE insert KEY VALUE
-    akv_mem.exe FILE update KEY VALUE
-";
-
-#[cfg(not(target_os = "windows"))]
 const USAGE: &'static str = "
 Usage:
     akv_mem FILE get KEY

@@ -10,6 +10,14 @@ This source code repository is a companion to the [Rust in Action][] book by Tim
 Most book sales are generated on the basis of trusted referrals and recommendations.
 Please add your rating or review on [Goodreads](https://www.goodreads.com/book/show/48496405-rust-in-action), [Amazon][] or perhaps even your own blog.
 
+
+```go
+// This is a comment
+fn main() {
+    println!("Hello, world!");
+}
+```
+
 If you haven't got it yet, here are some links so that you can buy _Rust in Action_ for yourself: 
 
 - [direct from the publisher][Rust in Action] (recommended)

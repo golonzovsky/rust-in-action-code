@@ -1,7 +1,12 @@
 [package]
 name = "ch5-q"
 version = "0.1.0"
+edition = "2021"
 authors = ["Tim McNamara <author@rustinaction.com>"]
+
+[lib]
+name = "my_library"
+path = "src/lib.rs"
 
 [dependencies]
 num = "*"

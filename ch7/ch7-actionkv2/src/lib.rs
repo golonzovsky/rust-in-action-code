@@ -20,7 +20,7 @@ pub struct KeyValuePair {
   pub value: ByteString,
 }
 
-#[derive(Debug)] // #[derive(Debug)]
+#[derive(Debug)]
 pub struct ActionKV {
   f: File,
   pub index: HashMap<ByteString, u64>,
@@ -32,7 +32,6 @@ impl ActionKV {
       // instance of the OpenOptions struct with the relevant option
       // set.
       .read(true) // Enable reading
-      .write(true) // Enable writing (not strictly necessary, as it's implied by append)
       .create(true) // Create a file at `path` if ir doesn't already exist
       .append(true) // Don't delete any content that's already been written to disk.
       .open(path)?;
@@ -80,7 +79,7 @@ impl ActionKV {
     let mut f = BufReader::new(&mut self.f);
 
     loop {
-      let current_position = f.seek(SeekFrom::Current(0))?;
+      let current_position = f.stream_position()?;
 
       let maybe_kv = ActionKV::process_record(&mut f);
       let kv = match maybe_kv {
@@ -124,16 +123,13 @@ impl ActionKV {
     Ok(kv)
   }
 
-  pub fn find(
-    &mut self,
-    target: &ByteStr,
-  ) -> io::Result<Option<(u64, ByteString)>> {
+  pub fn find(&mut self, target: &ByteStr) -> io::Result<Option<(u64, ByteString)>> {
     let mut f = BufReader::new(&mut self.f);
 
     let mut found: Option<(u64, ByteString)> = None;
 
     loop {
-      let position = f.seek(SeekFrom::Current(0))?;
+      let position = f.stream_position()?;
 
       let maybe_kv = ActionKV::process_record(&mut f);
       let kv = match maybe_kv {
@@ -161,22 +157,14 @@ impl ActionKV {
     Ok(found)
   }
 
-  pub fn insert(
-    &mut self,
-    key: &ByteStr,
-    value: &ByteStr,
-  ) -> io::Result<()> {
+  pub fn insert(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<()> {
     let position = self.insert_but_ignore_index(key, value)?;
 
     self.index.insert(key.to_vec(), position);
     Ok(())
   }
 
-  pub fn insert_but_ignore_index(
-    &mut self,
-    key: &ByteStr,
-    value: &ByteStr,
-  ) -> io::Result<u64> {
+  pub fn insert_but_ignore_index(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<u64> {
     let mut f = BufWriter::new(&mut self.f);
 
     let key_len = key.len();
@@ -194,7 +182,7 @@ impl ActionKV {
     let checksum = crc32::checksum_ieee(&tmp);
 
     let next_byte = SeekFrom::End(0);
-    let current_position = f.seek(SeekFrom::Current(0))?;
+    let current_position = f.stream_position()?;
     f.seek(next_byte)?;
     f.write_u32::<LittleEndian>(checksum)?;
     f.write_u32::<LittleEndian>(key_len as u32)?;
@@ -205,11 +193,7 @@ impl ActionKV {
   }
 
   #[inline]
-  pub fn update(
-    &mut self,
-    key: &ByteStr,
-    value: &ByteStr,
-  ) -> io::Result<()> {
+  pub fn update(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<()> {
     self.insert(key, value)
   }
 

@@ -1,0 +1,46 @@
+[package]
+name = "ch4"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "ch4-check-sats"
+path = "src/ch4-check-sats.rs"
+
+[[bin]]
+name = "ch4-check-sats-1"
+path = "src/ch4-check-sats-1.rs"
+
+[[bin]]
+name = "ch4-check-sats-2"
+path = "src/ch4-check-sats-2.rs"
+
+[[bin]]
+name = "ch4-check-sats-3"
+path = "src/ch4-check-sats-3.rs"
+
+[[bin]]
+name = "ch4-check-sats-clone-and-copy-traits"
+path = "src/ch4-check-sats-clone-and-copy-traits.rs"
+
+[[bin]]
+name = "ch4-check-sats-with-copy-trait"
+path = "src/ch4-check-sats-with-copy-trait.rs"
+
+[[bin]]
+name = "ch4-rc-groundstation"
+path = "src/ch4-rc-groundstation.rs"
+
+[[bin]]
+name = "ch4-rc-refcell-groundstation"
+path = "src/ch4-rc-refcell-groundstation.rs"
+
+[[bin]]
+name = "ch4-sat-mailbox"
+path = "src/ch4-sat-mailbox.rs"
+
+[[bin]]
+name = "ch4-short-lived-strategy"
+path = "src/ch4-short-lived-strategy.rs"
+
+[dependencies]

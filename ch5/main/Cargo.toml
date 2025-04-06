@@ -1,0 +1,43 @@
+[package]
+name = "ch5"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "f32-encode"
+path = "src/f32-encoding.rs"
+
+[[bin]]
+name = "ch5-bit-patterns"
+path = "src/ch5-bit-patterns.rs"
+
+[[bin]]
+name = "ch5-f32-as-u32"
+path = "src/ch5-f32-as-u32.rs"
+
+[[bin]]
+name = "ch5-int-vs-int"
+path = "src/ch5-int-vs-int.rs"
+
+[[bin]]
+name = "ch5-u8-to-mock-rand"
+path = "src/ch5-u8-to-mock-rand.rs"
+
+[[bin]]
+name = "ch5-endianness"
+path = "src/ch5-endianness.rs"
+
+[[bin]]
+name = "ch5-impossible-add"
+path = "src/ch5-impossible-add.rs"
+
+[[bin]]
+name = "ch5-to-oblivion"
+path = "src/ch5-to-oblivion.rs"
+
+[[bin]]
+name = "ch5-visualizing-f32"
+path = "src/ch5-visualizing-f32.rs"
+
+[dependencies]
+colored = "3.0.0"

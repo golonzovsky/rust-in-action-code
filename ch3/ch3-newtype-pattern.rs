@@ -1,3 +1,4 @@
+
 struct Hostname(String);                 // <1>
 
 fn connect(host: Hostname) {             // <2>

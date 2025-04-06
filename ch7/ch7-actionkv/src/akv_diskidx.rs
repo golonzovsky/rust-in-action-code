@@ -5,16 +5,6 @@ extern crate libactionkv;
 use libactionkv::ActionKV;
 use std::collections::HashMap;
 
-#[cfg(target_os = "windows")]
-const USAGE: &'static str = "
-Usage:
-    akv_mem.exe FILE get KEY
-    akv_mem.exe FILE delete KEY
-    akv_mem.exe FILE insert KEY VALUE
-    akv_mem.exe FILE update KEY VALUE
-";
-
-#[cfg(not(target_os = "windows"))]
 const USAGE: &'static str = "
 Usage:
     akv_mem FILE get KEY

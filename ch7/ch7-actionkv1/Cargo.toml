@@ -1,12 +1,11 @@
 [package]
 name = "actionkv"
 version = "1.0.0"
-authors = ["Tim McNamara <author@rustinaction.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-crc = "1.7"
-byteorder = "1.2"
+crc = "3.2"
+byteorder = "1.5"
 serde = "1"
 serde_derive = "1"
 

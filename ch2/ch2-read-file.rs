@@ -1,22 +1,21 @@
 use std::fs::File;
-use std::io::BufReader;
 use std::io::prelude::*;
+use std::io::BufReader;
 
 fn main() {
-  let f = File::open("readme.md").unwrap();    // <1>
+  let f = File::open("readme.md").unwrap();
   let mut reader = BufReader::new(f);
 
-  let mut line = String::new();    // <2>
-
+  let mut line = String::new();
   loop {
-    let len = reader.read_line(&mut line)
-                    .unwrap(); // <3>
+    let len = reader.read_line(&mut line).unwrap();
     if len == 0 {
-      break
+      break;
     }
 
     println!("{} ({} bytes long)", line, len);
 
-    line.truncate(0);    // <4>
+    line.truncate(0);
   }
 }
+

@@ -1,24 +1,23 @@
-#![allow(unused_variables)]              // <1>
+#![allow(unused_variables)]
 
-type File = String;                      // <2>
+type File = String;
 
 fn open(f: &mut File) -> bool {
-    true   // <3>
+  true
 }
 
 fn close(f: &mut File) -> bool {
-    true                                 // <3>
+  true
 }
 
-#[allow(dead_code)]                      // <4>
-fn read(f: &mut File,
-        save_to: &mut Vec<u8>) -> ! {    // <5>
-    unimplemented!()                     // <6>
+#[allow(dead_code)]
+fn read(f: &mut File, save_to: &mut Vec<u8>) -> ! {
+  unimplemented!()
 }
 
 fn main() {
-    let mut f1 = File::from("f1.txt");  // <7>
-    open(&mut f1);
-    //read(f1, vec![]);                 // <8>
-    close(&mut f1);
+  let mut f1 = File::from("f1.txt");
+  open(&mut f1);
+  // read(&mut f1);
+  close(&mut f1);
 }

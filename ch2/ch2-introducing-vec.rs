@@ -10,40 +10,37 @@ It is the same with books.
 What do we seek
 through millions of pages?";
 
-  let mut tags: Vec<usize> = vec![];               // <1>
-  let mut ctx: Vec<Vec<(
-               usize, String)>> = vec![];          // <2>
+  let mut tags: Vec<usize> = vec![];
+  let mut ctx: Vec<Vec<(usize, String)>> = vec![];
 
-  for (i, line) in haystack.lines().enumerate() {  // <3>
+  for (i, line) in haystack.lines().enumerate() {
     if line.contains(needle) {
       tags.push(i);
 
-      let v = Vec::with_capacity(2*ctx_lines + 1); // <4>
+      let v = Vec::with_capacity(2 * ctx_lines + 1);
       ctx.push(v);
     }
   }
 
-  if tags.is_empty() {                             // <5>
+  if tags.is_empty() {
     return;
   }
 
-  for (i, line) in haystack.lines().enumerate() {  // <6>
+  for (i, line) in haystack.lines().enumerate() {
     for (j, tag) in tags.iter().enumerate() {
-      let lower_bound =
-	      tag.saturating_sub(ctx_lines);           // <7>
-      let upper_bound =
-	      tag + ctx_lines;
+      let lower_bound = tag.saturating_sub(ctx_lines);
+      let upper_bound = tag + ctx_lines;
 
       if (i >= lower_bound) && (i <= upper_bound) {
-          let line_as_string = String::from(line); // <8>
-          let local_ctx = (i, line_as_string);
-          ctx[j].push(local_ctx);
+        let line_as_string = String::from(line);
+        let local_ctx = (i, line_as_string);
+        ctx[j].push(local_ctx);
       }
     }
   }
 
   for local_ctx in ctx.iter() {
-    for &(i, ref line) in local_ctx.iter() {       // <9>
+    for &(i, ref line) in local_ctx.iter() {
       let line_num = i + 1;
       println!("{}: {}", line_num, line);
     }

@@ -1,16 +1,16 @@
 fn greet_world() {
-    println!("Hello, world!");     // <1>
+  println!("Hello, world!");
 
-    let southern_germany = "Grüß Gott!";         // <2>
-    let japan = "ハロー・ワールド";                // <3>
+  let southern_germany = "Grüß Gott!";
+  let japan = "ハロー・ワールド";
 
-    let regions = [southern_germany, japan];     // <4>
+  let regions = [southern_germany, japan];
 
-    for region in regions.iter() {               // <5>
-            println!("{}", &region);             // <6>
-    }
+  for region in regions.iter() {
+    println!("{}", &region);
+  }
 }
 
 fn main() {
-    greet_world();                               // <7>
+  greet_world();
 }
