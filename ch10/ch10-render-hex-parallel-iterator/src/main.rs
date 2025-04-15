@@ -5,19 +5,8 @@ use svg::node::element::path::{Command, Data, Position};
 use svg::node::element::{Path, Rectangle};
 use svg::Document;
 
-use crate::Operation::{
-    Forward,
-    Home,
-    Noop,
-    TurnLeft,
-    TurnRight
-};
-use crate::Orientation::{
-    East,
-    North,
-    South,
-    West
-};
+use crate::Operation::{Forward, Home, Noop, TurnLeft, TurnRight};
+use crate::Orientation::{East, North, South, West};
 
 const WIDTH: isize = 400;
 const HEIGHT: isize = WIDTH;
@@ -113,8 +102,8 @@ impl Artist {
 
 fn parse(input: &str) -> Vec<Operation> {
   input
-    .as_bytes()                               // <1>
-    .par_iter()                               // <2>
+    .as_bytes()
+    .par_iter()
     .map(|byte| match byte {
       b'0' => Home,
       b'1'..=b'9' => {
@@ -123,7 +112,7 @@ fn parse(input: &str) -> Vec<Operation> {
       }
       b'a' | b'b' | b'c' => TurnLeft,
       b'd' | b'e' | b'f' => TurnRight,
-      _ => Noop(*byte),                       // <3>
+      _ => Noop(*byte),
     })
     .collect()
 }
@@ -132,9 +121,7 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
   let mut turtle = Artist::new();
 
   let mut path_data = Vec::<Command>::with_capacity(operations.len());
-  let start_at_home = Command::Move(
-    Position::Absolute, (HOME_X, HOME_Y).into()
-  );
+  let start_at_home = Command::Move(Position::Absolute, (HOME_X, HOME_Y).into());
   path_data.push(start_at_home);
 
   for op in operations {
@@ -145,12 +132,10 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
       Home => turtle.home(),
       Noop(byte) => {
         eprintln!("warning: illegal byte encountered: {:?}", byte);
-      },
+      }
     };
 
-    let path_segment = Command::Line(
-      Position::Absolute, (turtle.x, turtle.y).into()
-    );
+    let path_segment = Command::Line(Position::Absolute, (turtle.x, turtle.y).into());
     path_data.push(path_segment);
 
     turtle.wrap();
@@ -179,16 +164,14 @@ fn generate_svg(path_data: Vec<Command>) -> Document {
     .set("stroke-opacity", "0.9")
     .set("d", Data::from(path_data));
 
-  let document = Document::new()
+  Document::new()
     .set("viewBox", (0, 0, HEIGHT, WIDTH))
     .set("height", HEIGHT)
     .set("width", WIDTH)
     .set("style", "style=\"outline: 5px solid #800000;\"")
     .add(background)
     .add(sketch)
-    .add(border);
-
-  document
+    .add(border)
 }
 
 fn main() {

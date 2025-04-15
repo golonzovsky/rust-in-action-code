@@ -3,11 +3,13 @@ use std::fmt;
 use std::net::IpAddr;
 use std::os::unix::io::AsRawFd;
 
-use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
-use smoltcp::phy::{wait as phy_wait, TapInterface};
-use smoltcp::socket::{SocketSet, TcpSocket, TcpSocketBuffer};
-use smoltcp::time::Instant;
-use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
+use smoltcp::{
+  iface::{EthernetInterfaceBuilder, NeighborCache, Routes},
+  phy::{TapInterface, wait as phy_wait},
+  socket::{SocketSet, TcpSocket, TcpSocketBuffer},
+  time::Instant,
+  wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address},
+};
 use url::Url;
 
 #[derive(Debug)]
@@ -46,12 +48,7 @@ fn random_port() -> u16 {
   49152 + rand::random::<u16>() % 16384
 }
 
-pub fn get(
-  tap: TapInterface,
-  mac: EthernetAddress,
-  addr: IpAddr,
-  url: Url,
-) -> Result<(), UpstreamError> {
+pub fn get(tap: TapInterface, mac: EthernetAddress, addr: IpAddr, url: Url) -> Result<(), UpstreamError> {
   let domain_name = url.host_str().ok_or(UpstreamError::InvalidUrl)?;
 
   let neighbor_cache = NeighborCache::new(BTreeMap::new());
@@ -126,8 +123,7 @@ pub fn get(
       }
     }
 
-    phy_wait(fd, iface.poll_delay(&sockets, timestamp))
-      .expect("wait error");
+    phy_wait(fd, iface.poll_delay(&sockets, timestamp)).expect("wait error");
   }
 
   Ok(())

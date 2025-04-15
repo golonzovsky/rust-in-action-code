@@ -36,16 +36,16 @@ fn main() {
   let mut encoder = BinEncoder::new(&mut request_as_bytes);
   msg.emit(&mut encoder).unwrap();
 
-  let udp_socket = UdpSocket::bind("0.0.0.0:0").expect("cannot bind to local socket");
-  udp_socket.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
-  udp_socket.set_nonblocking(false).unwrap();
+  let localhost = UdpSocket::bind("0.0.0.0:0").expect("cannot bind to local socket");
+  localhost.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+  localhost.set_nonblocking(false).unwrap();
 
-  let _amt = udp_socket
+  let _amt = localhost
     .send_to(&request_as_bytes, dns_server)
     .expect("socket misconfigured");
 
   let mut response_as_bytes: Vec<u8> = vec![0; 512];
-  let (_amt, _remote) = udp_socket.recv_from(&mut response_as_bytes).expect("timeout reached");
+  let (_amt, _remote) = localhost.recv_from(&mut response_as_bytes).expect("timeout reached");
 
   let dns_message = Message::from_vec(&response_as_bytes).expect("unable to parse response");
 

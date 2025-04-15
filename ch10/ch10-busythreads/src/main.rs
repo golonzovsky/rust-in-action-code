@@ -11,6 +11,7 @@ fn main() {
         let pause = time::Duration::from_millis(20);
         while start.elapsed() < pause {
           thread::yield_now();
+          // std::sync::atomic::spin_loop _hint()
         }
       });
       handlers.push(handle);

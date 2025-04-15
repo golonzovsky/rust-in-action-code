@@ -4,47 +4,36 @@ use svg::node::element::path::{Command, Data, Position};
 use svg::node::element::{Path, Rectangle};
 use svg::Document;
 
-use crate::Operation::{               // <1>
-    Forward,                          // <1>
-    Home,                             // <1>
-    Noop,                             // <1>
-    TurnLeft,                         // <1>
-    TurnRight                         // <1>
-};                                    // <1>
-use crate::Orientation::{             // <1>
-    East,                             // <1>
-    North,                            // <1>
-    South,                            // <1>
-    West                              // <1>
-};                                    // <1>
+use crate::Operation::{Forward, Home, Noop, TurnLeft, TurnRight};
+use crate::Orientation::{East, North, South, West};
 
-const WIDTH: isize = 400;             // <2>
-const HEIGHT: isize = WIDTH;          // <2>
+const WIDTH: isize = 400;
+const HEIGHT: isize = WIDTH;
 
-const HOME_Y: isize = HEIGHT / 2;     // <3>
-const HOME_X: isize = WIDTH / 2;      // <3>
+const HOME_Y: isize = HEIGHT / 2;
+const HOME_X: isize = WIDTH / 2;
 
-const STROKE_WIDTH: usize = 5;        // <4>
+const STROKE_WIDTH: usize = 5;
 
 #[derive(Debug, Clone, Copy)]
 enum Orientation {
-  North,                              // <5>
-  East,                               // <5>
-  West,                               // <5>
-  South,                              // <5>
+  North,
+  East,
+  West,
+  South,
 }
 
 #[derive(Debug, Clone, Copy)]
-enum Operation {                      // <6>
-  Forward(isize),                     // <7>
+enum Operation {
+  Forward(isize),
   TurnLeft,
   TurnRight,
   Home,
-  Noop(u8),                           // <8>
+  Noop(u8),
 }
 
 #[derive(Debug)]
-struct Artist {                       // <9>
+struct Artist {
   x: isize,
   y: isize,
   heading: Orientation,
@@ -64,7 +53,7 @@ impl Artist {
     self.y = HOME_Y;
   }
 
-  fn forward(&mut self, distance: isize) {   // <10>
+  fn forward(&mut self, distance: isize) {
     match self.heading {
       North => self.y += distance,
       South => self.y -= distance,
@@ -73,7 +62,7 @@ impl Artist {
     }
   }
 
-  fn turn_right(&mut self) {                 // <10>
+  fn turn_right(&mut self) {
     self.heading = match self.heading {
       North => East,
       South => West,
@@ -82,7 +71,7 @@ impl Artist {
     }
   }
 
-  fn turn_left(&mut self) {                  // <10>
+  fn turn_left(&mut self) {
     self.heading = match self.heading {
       North => West,
       South => East,
@@ -91,7 +80,7 @@ impl Artist {
     }
   }
 
-  fn wrap(&mut self) {                       // <11>
+  fn wrap(&mut self) {
     if self.x < 0 {
       self.x = HOME_X;
       self.heading = West;
@@ -116,12 +105,12 @@ fn parse(input: &str) -> Vec<Operation> {
     let step = match byte {
       b'0' => Home,
       b'1'..=b'9' => {
-        let distance = (byte - 0x30) as isize;   // <12>
+        let distance = (byte - 0x30) as isize;
         Forward(distance * (HEIGHT / 10))
       }
       b'a' | b'b' | b'c' => TurnLeft,
       b'd' | b'e' | b'f' => TurnRight,
-      _ => Noop(byte),                           // <13>
+      _ => Noop(byte),
     };
     steps.push(step);
   }
@@ -132,9 +121,7 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
   let mut turtle = Artist::new();
 
   let mut path_data = Vec::<Command>::with_capacity(operations.len());
-  let start_at_home = Command::Move(
-    Position::Absolute, (HOME_X, HOME_Y).into()
-  );
+  let start_at_home = Command::Move(Position::Absolute, (HOME_X, HOME_Y).into());
   path_data.push(start_at_home);
 
   for op in operations {
@@ -145,12 +132,10 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
       Home => turtle.home(),
       Noop(byte) => {
         eprintln!("warning: illegal byte encountered: {:?}", byte);
-      },
+      }
     };
 
-    let path_segment = Command::Line(
-      Position::Absolute, (turtle.x, turtle.y).into()
-    );
+    let path_segment = Command::Line(Position::Absolute, (turtle.x, turtle.y).into());
     path_data.push(path_segment);
 
     turtle.wrap();
@@ -179,16 +164,14 @@ fn generate_svg(path_data: Vec<Command>) -> Document {
     .set("stroke-opacity", "0.9")
     .set("d", Data::from(path_data));
 
-  let document = Document::new()
+  Document::new()
     .set("viewBox", (0, 0, HEIGHT, WIDTH))
     .set("height", HEIGHT)
     .set("width", WIDTH)
     .set("style", "style=\"outline: 5px solid #800000;\"")
     .add(background)
     .add(sketch)
-    .add(border);
-
-  document
+    .add(border)
 }
 
 fn main() {

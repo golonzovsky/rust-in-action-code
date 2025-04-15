@@ -5,19 +5,8 @@ use svg::node::element::path::{Command, Data, Position};
 use svg::node::element::{Path, Rectangle};
 use svg::Document;
 
-use crate::Operation::{
-    Forward,
-    Home,
-    Noop,
-    TurnLeft,
-    TurnRight
-};
-use crate::Orientation::{
-    East,
-    North,
-    South,
-    West
-};
+use crate::Operation::{Forward, Home, Noop, TurnLeft, TurnRight};
+use crate::Orientation::{East, North, South, West};
 
 const WIDTH: isize = 400;
 const HEIGHT: isize = WIDTH;
@@ -111,60 +100,55 @@ impl Artist {
   }
 }
 
-// Unfortunately, the listing's line numbers indicate
-// that this section starts at line 99
-enum Work {                               // <1>
-  Task((usize, u8)),                    // <2>
-  Finished,                             // <3>
+enum Work {
+  Task((usize, u8)),
+  Finished,
 }
 
-fn parse_byte(byte: u8) -> Operation {    // <4>
+fn parse_byte(byte: u8) -> Operation {
   match byte {
-      b'0' => Home,
-      b'1'..=b'9' => {
-          let distance = (byte - 0x30) as isize;
-          Forward(distance * (HEIGHT/10))
-      },
-      b'a' | b'b' | b'c' => TurnLeft,
-      b'd' | b'e' | b'f' => TurnRight,
-      _ => Noop(byte),
+    b'0' => Home,
+    b'1'..=b'9' => {
+      let distance = (byte - 0x30) as isize;
+      Forward(distance * (HEIGHT / 10))
+    }
+    b'a' | b'b' | b'c' => TurnLeft,
+    b'd' | b'e' | b'f' => TurnRight,
+    _ => Noop(byte),
   }
 }
 
 fn parse(input: &str) -> Vec<Operation> {
   let n_threads = 2;
-  let (todo_tx, todo_rx) = unbounded();           // <5>
-  let (results_tx, results_rx) = unbounded();     // <6>
+  let (todo_tx, todo_rx) = unbounded();
+  let (results_tx, results_rx) = unbounded();
   let mut n_bytes = 0;
-  for (i,byte) in input.bytes().enumerate() {
-      todo_tx.send(Work::Task((i,byte))).unwrap();// <7>
-      n_bytes += 1;                               // <8>
+  for (i, byte) in input.bytes().enumerate() {
+    todo_tx.send(Work::Task((i, byte))).unwrap();
+    n_bytes += 1;
   }
-
-  for _ in 0..n_threads {                         // <9>
-      todo_tx.send(Work::Finished).unwrap();      // <9>
-  }                                               // <9>
 
   for _ in 0..n_threads {
-      let todo = todo_rx.clone();                // <10>
-      let results = results_tx.clone();          // <10>
-      thread::spawn(move || {
-          loop {
-              let task = todo.recv();
-              let result = match task {
-                  Err(_) => break,
-                  Ok(Work::Finished) => break,
-                  Ok(Work::Task((i, byte))) => (i, parse_byte(byte)),
-              };
-              results.send(result).unwrap();
-
-          }
-      });
+    todo_tx.send(Work::Finished).unwrap();
   }
-  let mut ops = vec![Noop(0); n_bytes];          // <11>
+
+  for _ in 0..n_threads {
+    let todo = todo_rx.clone();
+    let results = results_tx.clone();
+    thread::spawn(move || loop {
+      let task = todo.recv();
+      let result = match task {
+        Err(_) => break,
+        Ok(Work::Finished) => break,
+        Ok(Work::Task((i, byte))) => (i, parse_byte(byte)),
+      };
+      results.send(result).unwrap();
+    });
+  }
+  let mut ops = vec![Noop(0); n_bytes];
   for _ in 0..n_bytes {
-      let (i, op) = results_rx.recv().unwrap();
-      ops[i] = op;
+    let (i, op) = results_rx.recv().unwrap();
+    ops[i] = op;
   }
   ops
 }
@@ -173,9 +157,7 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
   let mut turtle = Artist::new();
 
   let mut path_data = Vec::<Command>::with_capacity(operations.len());
-  let start_at_home = Command::Move(
-    Position::Absolute, (HOME_X, HOME_Y).into()
-  );
+  let start_at_home = Command::Move(Position::Absolute, (HOME_X, HOME_Y).into());
   path_data.push(start_at_home);
 
   for op in operations {
@@ -186,12 +168,10 @@ fn convert(operations: &Vec<Operation>) -> Vec<Command> {
       Home => turtle.home(),
       Noop(byte) => {
         eprintln!("warning: illegal byte encountered: {:?}", byte);
-      },
+      }
     };
 
-    let path_segment = Command::Line(
-      Position::Absolute, (turtle.x, turtle.y).into()
-    );
+    let path_segment = Command::Line(Position::Absolute, (turtle.x, turtle.y).into());
     path_data.push(path_segment);
 
     turtle.wrap();

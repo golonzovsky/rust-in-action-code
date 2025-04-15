@@ -1,23 +1,14 @@
-#[cfg(windows)]
-use kernel32;
-#[cfg(not(windows))]
-use libc;
-#[cfg(windows)]
-use winapi;
-
 use byteorder::{BigEndian, ReadBytesExt};
-use chrono::{
-  DateTime, Duration as ChronoDuration, TimeZone, Timelike,
-};
+use chrono::{DateTime, Duration as ChronoDuration, TimeZone, Timelike};
 use chrono::{Local, Utc};
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use std::mem::zeroed;
 use std::net::UdpSocket;
 use std::time::Duration;
 
-const NTP_MESSAGE_LENGTH: usize = 48;               <1>
+const NTP_MESSAGE_LENGTH: usize = 48;
 const NTP_TO_UNIX_SECONDS: i64 = 2_208_988_800;
-const LOCAL_ADDR: &'static str = "0.0.0.0:12300";   <2>
+const LOCAL_ADDR: &str = "0.0.0.0:12300";
 
 #[derive(Default, Debug, Copy, Clone)]
 struct NTPTimestamp {
@@ -82,39 +73,29 @@ impl NTPMessage {
   }
 
   fn client() -> Self {
-    const VERSION: u8 = 0b00_011_000;   <3>
-    const MODE: u8    = 0b00_000_011;   <3>
+    const VERSION: u8 = 0b00_011_000;
+    const MODE: u8 = 0b00_000_011;
 
     let mut msg = NTPMessage::new();
 
-    msg.data[0] |= VERSION;             <4>
-    msg.data[0] |= MODE;                <4>
-    msg                                 <5>
+    msg.data[0] |= VERSION;
+    msg.data[0] |= MODE;
+    msg
   }
 
-  fn parse_timestamp(
-    &self,
-    i: usize,
-  ) -> Result<NTPTimestamp, std::io::Error> {
-    let mut reader = &self.data[i..i + 8];        <6>
-    let seconds    = reader.read_u32::<BigEndian>()?;
-    let fraction   = reader.read_u32::<BigEndian>()?;
+  fn parse_timestamp(&self, i: usize) -> Result<NTPTimestamp, std::io::Error> {
+    let mut reader = &self.data[i..i + 8];
+    let seconds = reader.read_u32::<BigEndian>()?;
+    let fraction = reader.read_u32::<BigEndian>()?;
 
-    Ok(NTPTimestamp {
-      seconds:  seconds,
-      fraction: fraction,
-    })
+    Ok(NTPTimestamp { seconds, fraction })
   }
 
-  fn rx_time(
-    &self
-  ) -> Result<NTPTimestamp, std::io::Error> {     <7>
+  fn rx_time(&self) -> Result<NTPTimestamp, std::io::Error> {
     self.parse_timestamp(32)
   }
 
-  fn tx_time(
-    &self
-  ) -> Result<NTPTimestamp, std::io::Error> {     <8>
+  fn tx_time(&self) -> Result<NTPTimestamp, std::io::Error> {
     self.parse_timestamp(40)
   }
 }
@@ -131,10 +112,7 @@ fn weighted_mean(values: &[f64], weights: &[f64]) -> f64 {
   result / sum_of_weights
 }
 
-fn ntp_roundtrip(
-  host: &str,
-  port: u16,
-) -> Result<NTPResult, std::io::Error> {
+fn ntp_roundtrip(host: &str, port: u16) -> Result<NTPResult, std::io::Error> {
   let destination = format!("{}:{}", host, port);
   let timeout = Duration::from_secs(1);
 
@@ -153,23 +131,10 @@ fn ntp_roundtrip(
   udp.recv_from(&mut response.data)?;
   let t4 = Utc::now();
 
-  let t2: DateTime<Utc> =
-    response
-      .rx_time()
-      .unwrap()
-      .into();
-  let t3: DateTime<Utc> =
-    response
-      .tx_time()
-      .unwrap()
-      .into();
+  let t2: DateTime<Utc> = response.rx_time().unwrap().into();
+  let t3: DateTime<Utc> = response.tx_time().unwrap().into();
 
-  Ok(NTPResult {
-    t1: t1,
-    t2: t2,
-    t3: t3,
-    t4: t4,
-  })
+  Ok(NTPResult { t1, t2, t3, t4 })
 }
 
 fn check_time() -> Result<f64, std::io::Error> {
@@ -189,7 +154,7 @@ fn check_time() -> Result<f64, std::io::Error> {
   for &server in servers.iter() {
     print!("{} =>", server);
 
-    let calc = ntp_roundtrip(&server, NTP_PORT);
+    let calc = ntp_roundtrip(server, NTP_PORT);
 
     match calc {
       Ok(time) => {
@@ -228,50 +193,7 @@ impl Clock {
     Local::now()
   }
 
-  #[cfg(windows)]
-  fn set<Tz: TimeZone>(t: DateTime<Tz>) -> () {
-    use chrono::Weekday;
-    use kernel32::SetSystemTime;
-    use winapi::{SYSTEMTIME, WORD};
-
-    let t = t.with_timezone(&Local);
-
-    let mut systime: SYSTEMTIME = unsafe { zeroed() };
-
-    let dow = match t.weekday() {
-      Weekday::Mon => 1,
-      Weekday::Tue => 2,
-      Weekday::Wed => 3,
-      Weekday::Thu => 4,
-      Weekday::Fri => 5,
-      Weekday::Sat => 6,
-      Weekday::Sun => 0,
-    };
-
-    let mut ns = t.nanosecond();
-    let is_leap_second = ns > 1_000_000_000;
-
-    if is_leap_second {
-      ns -= 1_000_000_000;
-    }
-
-    systime.wYear = t.year() as WORD;
-    systime.wMonth = t.month() as WORD;
-    systime.wDayOfWeek = dow as WORD;
-    systime.wDay = t.day() as WORD;
-    systime.wHour = t.hour() as WORD;
-    systime.wMinute = t.minute() as WORD;
-    systime.wSecond = t.second() as WORD;
-    systime.wMilliseconds = (ns / 1_000_000) as WORD;
-
-    let systime_ptr = &systime as *const SYSTEMTIME;
-    unsafe {
-      SetSystemTime(systime_ptr);
-    }
-  }
-
-  #[cfg(not(windows))]
-  fn set<Tz: TimeZone>(t: DateTime<Tz>) -> () {
+  fn set<Tz: TimeZone>(t: DateTime<Tz>) {
     use libc::settimeofday;
     use libc::{suseconds_t, time_t, timeval, timezone};
 
@@ -289,7 +211,7 @@ impl Clock {
 }
 
 fn main() {
-  let app = App::new("clock")
+  let app = Command::new("clock")
     .version("0.1.3")
     .about("Gets and sets the time.")
     .after_help(
@@ -298,30 +220,26 @@ fn main() {
        format.",
     )
     .arg(
-      Arg::with_name("action")
-        .takes_value(true)
-        .possible_values(&["get", "set", "check-ntp"])
+      Arg::new("action")
+        .value_parser(["get", "set", "check-ntp"])
         .default_value("get"),
     )
     .arg(
-      Arg::with_name("std")
-        .short("s")
+      Arg::new("std")
+        .short('s')
         .long("use-standard")
-        .takes_value(true)
-        .possible_values(&["rfc2822", "rfc3339", "timestamp"])
+        .value_parser(["rfc2822", "rfc3339", "timestamp"])
         .default_value("rfc3339"),
     )
-    .arg(Arg::with_name("datetime").help(
-      "When <action> is 'set', apply <datetime>. Otherwise, ignore.",
-    ));
+    .arg(Arg::new("datetime").help("When <action> is 'set', apply <datetime>. Otherwise, ignore."));
 
   let args = app.get_matches();
 
-  let action = args.value_of("action").unwrap();
-  let std = args.value_of("std").unwrap();
+  let action = args.get_one::<String>("action").unwrap();
+  let std = args.get_one::<String>("std").unwrap().as_str();
 
   if action == "set" {
-    let t_ = args.value_of("datetime").unwrap();
+    let t_ = args.get_one::<String>("datetime").unwrap();
 
     let parser = match std {
       "rfc2822" => DateTime::parse_from_rfc2822,
@@ -329,12 +247,10 @@ fn main() {
       _ => unimplemented!(),
     };
 
-    let err_msg =
-      format!("Unable to parse {} according to {}", t_, std);
+    let err_msg = format!("Unable to parse {} according to {}", t_, std);
     let t = parser(t_).expect(&err_msg);
 
     Clock::set(t);
-
   } else if action == "check-ntp" {
     let offset = check_time().unwrap() as isize;
 
@@ -346,10 +262,8 @@ fn main() {
     Clock::set(now);
   }
 
-  let maybe_error =
-    std::io::Error::last_os_error();
-  let os_error_code =
-    &maybe_error.raw_os_error();
+  let maybe_error = std::io::Error::last_os_error();
+  let os_error_code = &maybe_error.raw_os_error();
 
   match os_error_code {
     Some(0) => (),

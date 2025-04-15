@@ -1,7 +1,8 @@
 use chrono::DateTime;
 use chrono::Local;
-use clap::{App, Arg};
+use clap::{Arg, Command};
 
+// struct with no fields is known as a zero-sized type or ZST
 struct Clock;
 
 impl Clock {
@@ -11,47 +12,38 @@ impl Clock {
 
   fn set() -> ! {
     unimplemented!()
+    //todo!()
   }
 }
 
 fn main() {
-  let app = App::new("clock")
+  let app = Command::new("clock")
     .version("0.1")
     .about("Gets and (aspirationally) sets the time.")
+    .arg(Arg::new("action").value_parser(["get", "set"]).default_value("get"))
     .arg(
-      Arg::with_name("action")
-        .takes_value(true)
-        .possible_values(&["get", "set"])
-        .default_value("get"),
-    )
-    .arg(
-      Arg::with_name("std")
-        .short("s")
+      Arg::new("std")
+        .short('s')
         .long("use-standard")
-        .takes_value(true)
-        .possible_values(&[
-          "rfc2822",
-          "rfc3339",
-          "timestamp",
-        ])
+        .value_parser(["rfc2822", "rfc3339", "timestamp"])
         .default_value("rfc3339"),
     )
-    .arg(Arg::with_name("datetime").help(
+    .arg(Arg::new("datetime").help(
       "When <action> is 'set', apply <datetime>. \
        Otherwise, ignore.",
     ));
 
   let args = app.get_matches();
 
-  let action = args.value_of("action").unwrap();   // <1>
-  let std = args.value_of("std").unwrap();         // <1>
+  let action = args.get_one::<String>("action").expect("default form clap");
+  let std = args.get_one::<String>("std").expect("default from clap");
 
   if action == "set" {
-    unimplemented!()                               // <2>
+    unimplemented!()
   }
 
   let now = Clock::get();
-  match std {
+  match std.as_str() {
     "timestamp" => println!("{}", now.timestamp()),
     "rfc2822" => println!("{}", now.to_rfc2822()),
     "rfc3339" => println!("{}", now.to_rfc3339()),
